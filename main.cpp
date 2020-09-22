@@ -38,6 +38,16 @@ void usage()
 	printf("sample: pcap-test wlan0\n");
 }
 
+bool checkTCPPacket(const u_char *packet)
+{
+	struct sniff_ethernet *ethernet = (struct sniff_ethernet *)packet;
+	struct sniff_ip *ip = (struct sniff_ip *)(packet + SIZE_ETHERNET);
+	
+	if(ethernet->ether_type != 0x0008) return true;
+	if(ip->ip_p != 0x06) return true;
+	return false;
+}
+
 void printEthernetHeader(const u_char *packet, u_short *ether_type)
 {
 	struct sniff_ethernet *ethernet = (struct sniff_ethernet*)packet;
@@ -108,6 +118,7 @@ int main(int argc, char* argv[])
 			printf("pacap_next_ex return %d(%s)\n", res, pcap_geterr(handle));
 			break;
 		}
+		if(checkTCPPacket(packet)) continue;
 		printf("----------------------------------------\n");
 		u_int size_ip, size_tcp;
 		u_short ip_len, ether_type;
